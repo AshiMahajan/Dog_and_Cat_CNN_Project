@@ -81,3 +81,6 @@ node_modules/
 package-lock.json
 
 !vercel.json
+!centroids.json
+!class_index.json
+!reports
