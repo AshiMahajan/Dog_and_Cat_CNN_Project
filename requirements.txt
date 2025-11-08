@@ -1,7 +1,6 @@
-tensorflow>=2.12
-flask
-numpy
-pillow
+Flask==2.3.2
+tensorflow-cpu==2.12.0
+numpy==1.23.5
+Pillow
 scikit-learn
 matplotlib
-gunicorn
