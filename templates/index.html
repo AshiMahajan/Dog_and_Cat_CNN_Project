@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Real-Time Image Classifier (Dog or Cat)</title>
+  </head>
+  <body class="min-h-screen bg-gray-50">
+    <div class="max-w-3xl mx-auto py-10 px-4">
+      <h1 class="text-3xl font-semibold mb-2">
+        Real-Time Image Classification (Dog or Cat)
+      </h1>
+      <p class="text-gray-600 mb-6">
+        Model: <span class="font-mono">{{ model_name }}</span>
+      </p>
+
+      <form
+        class="bg-white rounded-2xl shadow p-6 space-y-4"
+        action="/predict"
+        method="POST"
+        enctype="multipart/form-data"
+      >
+        <label class="block">
+          <span class="text-sm text-gray-700">Upload an image</span>
+          <input
+            name="image"
+            type="file"
+            accept="image/*"
+            class="mt-2 block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gray-800 file:text-white hover:file:bg-gray-700"
+            onchange="previewImage(event)"
+          />
+        </label>
+
+        <!-- Live client-side preview before upload -->
+        <div id="preview-container" class="hidden mt-4">
+          <p class="text-sm text-gray-600 mb-2">Preview:</p>
+          <img
+            id="preview-img"
+            src=""
+            class="max-h-64 rounded-xl border shadow-sm"
+            alt="Image preview"
+          />
+        </div>
+
+        <button
+          type="submit"
+          class="px-4 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700"
+        >
+          Predict
+        </button>
+      </form>
+
+      {% if result %}
+      <div class="mt-8 bg-white rounded-2xl shadow p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+          <!-- Left side: Prediction Details -->
+          <div>
+            <h2 class="text-xl font-semibold mb-3">Prediction Result</h2>
+
+            <p class="text-lg">
+              <span class="font-medium text-gray-700">Label:</span>
+              <span class="font-semibold text-emerald-700"
+                >{{ result.label }}</span
+              >
+            </p>
+
+            <p class="mt-2 text-lg">
+              <span class="font-medium text-gray-700">Confidence:</span>
+              <span class="font-semibold text-blue-700"
+                >{{ result.confidence }}%</span
+              >
+            </p>
+
+            <!-- Optional: probability bar -->
+            <div class="mt-4">
+              <div class="w-full bg-gray-200 rounded-full h-3">
+                <div
+                  class="h-3 rounded-full bg-emerald-600"
+                  style="width: {{ result.confidence }}%"
+                ></div>
+              </div>
+            </div>
+          </div>
+          {% if result and result.ambiguous %}
+          <div
+            class="mt-4 rounded-lg border border-amber-300 bg-amber-50 text-amber-800 px-4 py-2 text-sm"
+          >
+            <p class="font-medium">
+              ⚠️ Multiple objects or conflicting cues detected.
+            </p>
+            <p>
+              Prediction may be unreliable for images containing both cat, and
+              dog.
+            </p>
+            <p class="text-amber-700">
+              Working on an upgraded model with multi-object detection... Stay
+              tuned!
+            </p>
+          </div>
+          {% endif %} {% if result.is_ood %}
+          <div
+            class="mt-4 rounded-lg border border-amber-300 bg-amber-50 text-amber-800 px-4 py-2 text-sm"
+          >
+            This image doesn't look like our training classes (cat/dog). Result
+            shown as <b>“unknown animal”</b>.
+          </div>
+          {% endif %}
+
+          <!-- Right side: Image -->
+          {% if image_url %}
+          <div class="flex justify-center">
+            <div>
+              <p class="text-sm text-gray-600 mb-2 text-center">
+                Uploaded Image
+              </p>
+              <img
+                src="{{ image_url }}"
+                class="max-h-72 rounded-xl border shadow-md object-contain"
+                alt="Uploaded image"
+              />
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+      <div class="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white rounded-2xl shadow p-6">
+          <h2 class="font-medium mb-2">Model Comparison</h2>
+          <p class="text-sm text-gray-600">
+            See reports: accuracy, ROC-AUC, confusion matrix.
+            <a
+              href="/accuracy"
+              class="inline-flex items-center text-sm text-blue-600 hover:underline"
+            >
+              View detailed reports →
+            </a>
+          </p>
+        </div>
+        <div class="bg-white rounded-2xl shadow p-6">
+          <h2 class="font-medium mb-2">How it works</h2>
+          <ol class="list-decimal ml-6 text-sm text-gray-700">
+            <li>Upload → preprocess</li>
+            <li>Model inference → probability</li>
+            <li>Threshold 0.5 → label</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script>
+    function previewImage(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const preview = document.getElementById("preview-img");
+        const container = document.getElementById("preview-container");
+
+        preview.src = e.target.result;
+        container.classList.remove("hidden");
+      };
+      reader.readAsDataURL(file);
+    }
+  </script>
+</html>
