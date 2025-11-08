@@ -38,7 +38,7 @@ if MODEL_NAME == "basic":
     PREPROC = None  # utils handles /255.0 when PREPROC is None
 else:
     MODEL_NAME = "mobilenetv2"
-    MODEL_PATH = "models/mobilenetv2.h5"
+    MODEL_PATH = "models/mobileNetV2.h5"
     IMG_SIZE = (128, 128)
     PREPROC = mv2_pre
 
