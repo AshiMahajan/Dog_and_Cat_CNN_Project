@@ -13,3 +13,4 @@ h5py==3.15.1
 Pillow
 scikit-learn
 matplotlib
+gunicorn==21.2.0
