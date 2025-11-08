@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Model Reports</title>
+  </head>
+  <body class="min-h-screen bg-gray-50">
+    <div class="max-w-5xl mx-auto py-10 px-4">
+      <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-semibold">Model Comparison Reports</h1>
+        <a href="/" class="text-sm text-blue-600 hover:underline"
+          >← Back to app</a
+        >
+      </div>
+
+      {% if reports and reports|length > 0 %}
+      <div class="overflow-x-auto bg-white rounded-2xl shadow">
+        <table class="min-w-full text-sm">
+          <thead class="bg-gray-100">
+            <tr>
+              <th class="text-left px-4 py-3">Model</th>
+              <th class="text-left px-4 py-3">Accuracy</th>
+              <th class="text-left px-4 py-3">ROC-AUC</th>
+              <th class="text-left px-4 py-3">Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in reports %}
+            <tr class="border-t">
+              <td class="px-4 py-3 font-medium">{{ r.tag }}</td>
+              <td class="px-4 py-3">
+                {% if r.metrics.accuracy is defined %}{{
+                '%.4f'|format(r.metrics.accuracy) }}{% else %}—{% endif %}
+              </td>
+              <td class="px-4 py-3">
+                {% if r.metrics.roc_auc is not none %}{{
+                '%.4f'|format(r.metrics.roc_auc) }}{% else %}N/A{% endif %}
+              </td>
+              <td class="px-4 py-3">
+                <details class="cursor-pointer">
+                  <summary class="text-blue-600 hover:underline">View</summary>
+                  <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% if r.cm_path %}
+                    <div>
+                      <div class="text-gray-700 mb-2">Confusion Matrix</div>
+                      <img
+                        src="{{ url_for('static_report_file', path=r.cm_path) }}"
+                        class="rounded-xl border"
+                      />
+                    </div>
+                    {% endif %} {% if r.roc_path %}
+                    <div>
+                      <div class="text-gray-700 mb-2">ROC Curve</div>
+                      <img
+                        src="{{ url_for('static_report_file', path=r.roc_path) }}"
+                        class="rounded-xl border"
+                      />
+                    </div>
+                    {% endif %}
+                  </div>
+                  <pre class="mt-4 p-3 bg-gray-50 rounded-lg overflow-x-auto">
+{{ r.metrics | tojson(indent=2) }}</pre
+                  >
+                </details>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="bg-white rounded-2xl shadow p-6">
+        <p class="text-gray-700">
+          No reports found in <code>reports/</code>. Run
+          <code>python evaluate.py</code> first.
+        </p>
+      </div>
+      {% endif %}
+    </div>
+  </body>
+</html>
