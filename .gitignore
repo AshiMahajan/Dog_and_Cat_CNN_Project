@@ -43,16 +43,6 @@ uploads/
 static/preview/
 static/uploads/
 
-# ----------------------------------------------------------
-# MODELS
-# ----------------------------------------------------------
-models/
-*.h5
-*.hdf5
-*.tflite
-*.onnx
-*.pb
-
 # Model evaluation outputs (optional)
 reports/
 *.png
