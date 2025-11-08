@@ -89,3 +89,5 @@ __cache__/
 # ----------------------------------------------------------
 node_modules/
 package-lock.json
+
+!vercel.json
