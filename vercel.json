@@ -1,6 +1,6 @@
 {
   "functions": {
-    "api/index.py": {
+    "api/app.py": {
       "runtime": "python3.11",
       "maxDuration": 10,
       "excludeFiles": "{dataset,reports,uploads,venv,node_modules,.git,.github}/**"
