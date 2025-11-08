@@ -43,3 +43,25 @@ Upload any image → Model predicts:
 - Supports Docker
 - No user-upload files stored
 - Secure with SECRET_KEY
+
+## <!--  -->
+
+title: Cat-Dog Classifier + OOD
+emoji: 🐾
+colorFrom: indigo
+colorTo: blue
+sdk: docker
+app_port: 7860
+pinned: false
+
+---
+
+# Cat vs Dog Classifier (Flask + MobileNetV2)
+
+Free hosted web app on Hugging Face Spaces.  
+Includes:
+
+- Transfer Learning
+- Multi-crop Voting
+- OOD Detection via Embeddings
+- In-memory uploads
