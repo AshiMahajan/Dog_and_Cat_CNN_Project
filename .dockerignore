@@ -1,0 +1,11 @@
+dataset/
+uploads/
+reports/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+node_modules/
+.git
+.gitignore
+.DS_Store
