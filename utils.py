@@ -65,6 +65,10 @@ def load_centroids(path="models/centroids.json"):
 
 
 def get_embed_model(model):
+    """Build a model that outputs the embedding layer instead of the final
+    prediction. Build this ONCE at app startup and reuse it across requests
+    — constructing a new tf.keras.Model graph on every request is wasteful.
+    """
     try:
         layer = model.get_layer("embed")
     except ValueError:
@@ -81,6 +85,7 @@ def predict_image_with_ood(
     preproc=None,
     prob_threshold=0.5,
     centroids=None,
+    embed_model=None,
 ):
     im = pil_img.convert("RGB")
     x = _prepare_x_from_pil(im, img_size, preproc)
@@ -93,7 +98,12 @@ def predict_image_with_ood(
     if not centroids:
         return label, conf, p, False, 0.0, 0.0
 
-    embed_model = get_embed_model(model)
+    # Reuse a pre-built embed_model if the caller supplied one (recommended —
+    # build it once at app startup). Only build a throwaway one as a fallback
+    # so this function still works standalone if needed.
+    if embed_model is None:
+        embed_model = get_embed_model(model)
+
     e = embed_model.predict(x, verbose=0).reshape(-1)
 
     sims_items = sorted(
