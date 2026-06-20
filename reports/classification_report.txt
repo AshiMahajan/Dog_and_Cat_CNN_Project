@@ -1,0 +1,10 @@
+Final validation F1 score: 0.8801
+
+              precision    recall  f1-score   support
+
+        cats       0.88      0.88      0.88      1000
+        dogs       0.88      0.88      0.88      1000
+
+    accuracy                           0.88      2000
+   macro avg       0.88      0.88      0.88      2000
+weighted avg       0.88      0.88      0.88      2000
