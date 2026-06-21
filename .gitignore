@@ -44,8 +44,7 @@ static/preview/
 static/uploads/
 
 # Model evaluation outputs (optional)
-reports/
-*.png
+reports/*.png
 *.json
 
 # ----------------------------------------------------------
