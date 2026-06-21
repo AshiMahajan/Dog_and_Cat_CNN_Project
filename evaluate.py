@@ -104,7 +104,8 @@ def evaluate(model_path, img_size, preproc=None, tag="model"):
 
 
 if __name__ == "__main__":
-    # Basic CNN (rescale 1/255)
+    # Basic CNN (rescale 1/255) - currently saved model is the ORIGINAL
+    # 128x128 architecture (Flatten, not GlobalAveragePooling2D)
     evaluate("models/basic_cnn.h5", (128, 128), preproc=None, tag="basic")
 
     # # VGG16 (use VGG16 preprocessing)
