@@ -9,10 +9,11 @@ A production-ready image classifier that identifies **Cat**, **Dog**, or **Unkno
 ## 📸 Screenshots
 
 ### Prediction page
-![Model reports](screenshots/Model%20Report.png)
+![Prediction page](screenshots/Prediction%20Page.png)
 
 ### Model comparison reports
-![Prediction page](screenshots/Prediction%20Page.png)
+![Model reports](screenshots/Model%20Report.png)
+
 ---
 
 ## 📊 Model performance
