@@ -1,3 +1,13 @@
+---
+title: Cat-Dog Classifier + OOD
+emoji: 🐾
+colorFrom: indigo
+colorTo: blue
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # 🐾 Real-Time Cat vs Dog Classifier (Flask + MobileNetV2 + OOD Detection)
 
 A production-ready image classifier that identifies **Cat**, **Dog**, or **Unknown Animal** — with:
@@ -7,7 +17,7 @@ A production-ready image classifier that identifies **Cat**, **Dog**, or **Unkno
 - ✅ OOD (Out-of-Distribution) detection
 - ✅ Sketch-detection safety net
 - ✅ No file saving — in-memory image processing
-- ✅ Beautiful UI using Tailwind CSS
+- ✅ Clean dark UI
 - ✅ Reports (Accuracy, ROC-AUC, Confusion Matrix)
 
 ---
@@ -27,14 +37,14 @@ Upload any image → Model predicts:
 - Transfer learning with MobileNetV2
 - Global average pooling + embedding layer
 - Centroid-based similarity for OOD
-- Multi-crop augmentation at inference
+- Multi-crop voting at inference
 - Sketch-friendly gating rules
 
 ### ✅ 3. Clean Flask Backend
 
 - In-memory image processing (no disk required)
 - Data URL image preview
-- Config via `.env`
+- Config via environment variables
 - Flash & validation
 
 ### ✅ 4. Fully production ready
@@ -44,24 +54,7 @@ Upload any image → Model predicts:
 - No user-upload files stored
 - Secure with SECRET_KEY
 
-## <!--  -->
-
-title: Cat-Dog Classifier + OOD
-emoji: 🐾
-colorFrom: indigo
-colorTo: blue
-sdk: docker
-app_port: 7860
-pinned: false
-
 ---
 
-# Cat vs Dog Classifier (Flask + MobileNetV2)
-
-Free hosted web app on Hugging Face Spaces.  
-Includes:
-
-- Transfer Learning
-- Multi-crop Voting
-- OOD Detection via Embeddings
-- In-memory uploads
+Free hosted web app on Hugging Face Spaces. Includes transfer learning,
+multi-crop voting, OOD detection via embeddings, and in-memory uploads.
