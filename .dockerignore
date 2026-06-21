@@ -1,6 +1,5 @@
 dataset/
 uploads/
-reports/
 venv/
 __pycache__/
 *.pyc
