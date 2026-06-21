@@ -1,168 +1,540 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <title>Real-Time Image Classifier (Dog or Cat)</title>
+    <title>AniLens — Cat / Dog Classifier</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0e1116;
+        --card: #161b22;
+        --card-2: #1c2330;
+        --line: #2a3140;
+        --text: #c9d1d9;
+        --text-dim: #7d8794;
+        --lime: #e6ff4d;
+        --lime-dim: #4a5230;
+        --amber: #ff8a5b;
+      }
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Inter", sans-serif;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+      }
+      .display { font-family: "Space Grotesk", sans-serif; }
+      .mono { font-family: "JetBrains Mono", monospace; }
+
+      .wrap { max-width: 1080px; margin: 0 auto; padding: 56px 20px 80px; }
+
+      .page-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 28px;
+      }
+      @media (min-width: 880px) {
+        .page-grid { grid-template-columns: 280px 1fr; align-items: start; }
+      }
+
+      .sidebar { display: flex; flex-direction: column; gap: 16px; }
+      .side-card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 20px;
+      }
+      .side-card h3 {
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 0.88rem;
+        margin: 0 0 10px;
+        color: var(--lime);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .side-card p { font-size: 0.85rem; color: var(--text-dim); line-height: 1.6; margin: 0; }
+      .spec-list { list-style: none; margin: 0; padding: 0; }
+      .spec-list li {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 8px 0;
+        border-top: 1px solid var(--line);
+        font-size: 0.82rem;
+      }
+      .spec-list li:first-child { border-top: none; }
+      .spec-list .k { color: var(--text-dim); }
+      .spec-list .v {
+        font-family: "JetBrains Mono", monospace;
+        color: var(--text);
+        text-align: right;
+      }
+      .main-col { min-width: 0; }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        color: var(--lime);
+        text-transform: uppercase;
+        margin-bottom: 14px;
+      }
+      .eyebrow::before {
+        content: "";
+        width: 7px; height: 7px;
+        background: var(--lime);
+        border-radius: 50%;
+        box-shadow: 0 0 8px var(--lime);
+      }
+
+      h1 {
+        font-size: 2.1rem;
+        font-weight: 700;
+        line-height: 1.15;
+        margin: 0 0 10px;
+        letter-spacing: -0.01em;
+      }
+      .sub { color: var(--text-dim); font-size: 0.98rem; margin: 0 0 36px; max-width: 46ch; }
+      .sub .model-tag {
+        font-family: "JetBrains Mono", monospace;
+        background: var(--card-2);
+        border: 1px solid var(--line);
+        padding: 2px 8px;
+        border-radius: 5px;
+        color: var(--lime);
+        font-size: 0.85em;
+      }
+
+      /* ---- Viewfinder upload zone (signature element) ---- */
+      .viewfinder {
+        position: relative;
+        background: var(--card);
+        border-radius: 18px;
+        padding: 36px 24px;
+        border: 1px solid var(--line);
+      }
+      .vf-corner {
+        position: absolute;
+        width: 22px;
+        height: 22px;
+        border: 2px solid var(--text-dim);
+        transition: border-color 0.35s ease, transform 0.35s ease;
+      }
+      .vf-tl { top: 10px; left: 10px; border-right: none; border-bottom: none; border-radius: 4px 0 0 0; }
+      .vf-tr { top: 10px; right: 10px; border-left: none; border-bottom: none; border-radius: 0 4px 0 0; }
+      .vf-bl { bottom: 10px; left: 10px; border-right: none; border-top: none; border-radius: 0 0 0 4px; }
+      .vf-br { bottom: 10px; right: 10px; border-left: none; border-top: none; border-radius: 0 0 4px 0; }
+      .viewfinder.is-focused .vf-corner { border-color: var(--lime); }
+      .viewfinder.is-focused .vf-tl { transform: translate(4px, 4px); }
+      .viewfinder.is-focused .vf-tr { transform: translate(-4px, 4px); }
+      .viewfinder.is-focused .vf-bl { transform: translate(4px, -4px); }
+      .viewfinder.is-focused .vf-br { transform: translate(-4px, -4px); }
+
+      .drop-area {
+        border: 1.5px dashed var(--line);
+        border-radius: 12px;
+        padding: 36px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: border-color 0.2s, background 0.2s;
+      }
+      .drop-area:hover, .drop-area.drag-over {
+        border-color: var(--lime);
+        background: rgba(230, 255, 77, 0.04);
+      }
+      .drop-area input[type="file"] { display: none; }
+      .drop-icon { font-size: 28px; margin-bottom: 10px; opacity: 0.85; }
+      .drop-label { font-size: 0.92rem; color: var(--text-dim); }
+      .drop-label b { color: var(--text); }
+
+      .preview-wrap { margin-top: 18px; text-align: center; }
+      .preview-wrap img {
+        max-height: 280px;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+      }
+
+      .btn {
+        width: 100%;
+        margin-top: 20px;
+        padding: 13px 0;
+        border-radius: 10px;
+        border: none;
+        background: var(--lime);
+        color: #10130a;
+        font-family: "Space Grotesk", sans-serif;
+        font-weight: 600;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: filter 0.15s, transform 0.1s;
+      }
+      .btn:hover { filter: brightness(1.08); }
+      .btn:active { transform: scale(0.99); }
+      .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+      /* ---- Result card ---- */
+      .result {
+        margin-top: 28px;
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 26px;
+      }
+      .result-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 22px;
+      }
+      @media (min-width: 640px) {
+        .result-grid { grid-template-columns: 1.1fr 0.9fr; }
+      }
+      .label-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+      .label-row .tag {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: var(--text-dim);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      .label-value {
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--lime);
+        text-transform: capitalize;
+      }
+      .label-value.unknown { color: var(--amber); }
+
+      .conf-bar-track {
+        width: 100%;
+        height: 8px;
+        background: var(--card-2);
+        border-radius: 99px;
+        overflow: hidden;
+        margin-top: 14px;
+      }
+      .conf-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--lime-dim), var(--lime));
+        border-radius: 99px;
+        transition: width 0.6s ease;
+      }
+      .conf-number {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.85rem;
+        color: var(--text-dim);
+        margin-top: 8px;
+      }
+      .conf-number b { color: var(--text); }
+
+      .stat-row {
+        display: flex;
+        gap: 18px;
+        margin-top: 16px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.78rem;
+        color: var(--text-dim);
+      }
+      .stat-row div b { color: var(--text); display: block; font-size: 0.95rem; }
+
+      .notice {
+        margin-top: 16px;
+        border-radius: 10px;
+        padding: 12px 14px;
+        font-size: 0.85rem;
+        line-height: 1.45;
+        border: 1px solid;
+      }
+      .notice.warn {
+        background: rgba(255, 138, 91, 0.08);
+        border-color: rgba(255, 138, 91, 0.35);
+        color: #ffb499;
+      }
+      .notice.warn b { color: var(--amber); }
+
+      .result-img-wrap { display: flex; align-items: flex-start; justify-content: center; }
+      .result-img-wrap img {
+        max-height: 230px;
+        width: 100%;
+        object-fit: contain;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+      }
+
+      /* ---- Footer cards ---- */
+      .footer-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+        margin-top: 40px;
+      }
+      @media (min-width: 640px) {
+        .footer-grid { grid-template-columns: 1fr 1fr; }
+      }
+      .fcard {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 20px;
+      }
+      .fcard h2 {
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 0.95rem;
+        margin: 0 0 8px;
+      }
+      .fcard p, .fcard li { font-size: 0.85rem; color: var(--text-dim); line-height: 1.6; }
+      .fcard a { color: var(--lime); text-decoration: none; }
+      .fcard a:hover { text-decoration: underline; }
+      .fcard ol { margin: 0; padding-left: 20px; }
+
+      a:focus-visible, button:focus-visible, .drop-area:focus-visible {
+        outline: 2px solid var(--lime);
+        outline-offset: 2px;
+      }
+    </style>
   </head>
-  <body class="min-h-screen bg-gray-50">
-    <div class="max-w-3xl mx-auto py-10 px-4">
-      <h1 class="text-3xl font-semibold mb-2">
-        Real-Time Image Classification (Dog or Cat)
-      </h1>
-      <p class="text-gray-600 mb-6">
-        Model: <span class="font-mono">{{ model_name }}</span>
+  <body>
+    <div class="wrap">
+      <div class="page-grid">
+        <!-- Sidebar: model info -->
+        <aside class="sidebar">
+          <div class="side-card">
+            <h3>What's running</h3>
+            {% if model_name == "basic" %}
+            <p>
+              A convolutional neural network trained from scratch on the
+              cat/dog dataset — no pretrained weights. Used here as the
+              baseline to measure transfer learning against.
+            </p>
+            {% else %}
+            <p>
+              MobileNetV2, pretrained on ImageNet and fine-tuned on this
+              cat/dog dataset. The base network already knows general
+              visual features (edges, textures, shapes); fine-tuning
+              adapts its last layers specifically to cats and dogs —
+              which is why it classifies more accurately than a model
+              trained from zero.
+            </p>
+            {% endif %}
+          </div>
+
+          <div class="side-card">
+            <h3>Model specifications</h3>
+            <ul class="spec-list">
+              {% if model_name == "basic" %}
+              <li><span class="k">Architecture</span><span class="v">CNN (from scratch)</span></li>
+              <li><span class="k">Classes</span><span class="v">cat, dog</span></li>
+              <li><span class="k">Framework</span><span class="v">TensorFlow / Keras</span></li>
+              <li><span class="k">Input size</span><span class="v">160×160</span></li>
+              <li><span class="k">Preprocessing</span><span class="v">Rescale to [0, 1]</span></li>
+              {% else %}
+              <li><span class="k">Architecture</span><span class="v">MobileNetV2</span></li>
+              <li><span class="k">Classes</span><span class="v">cat, dog</span></li>
+              <li><span class="k">Framework</span><span class="v">TensorFlow / Keras</span></li>
+              <li><span class="k">Input size</span><span class="v">128×128</span></li>
+              <li><span class="k">Preprocessing</span><span class="v">MobileNetV2 norm ([-1, 1])</span></li>
+              {% endif %}
+            </ul>
+          </div>
+
+          <div class="side-card">
+            <h3>OOD detection</h3>
+            <p>
+              Predictions are checked against embedding similarity to
+              each class. Images that don't resemble either class closely
+              enough are flagged as "unknown animal" instead of being
+              forced into cat or dog.
+            </p>
+          </div>
+        </aside>
+
+        <!-- Main column: existing app content -->
+        <div class="main-col">
+          <span class="eyebrow">AniLens · vision model</span>
+      <h1>Point it at a photo. It'll tell you cat or dog.</h1>
+      <p class="sub">
+        Running on <span class="model-tag">{{ model_name }}</span> — drop an
+        image below to get a prediction, confidence score, and an
+        out-of-distribution check for anything that isn't a cat or dog.
       </p>
 
       <form
-        class="bg-white rounded-2xl shadow p-6 space-y-4"
+        id="predict-form"
         action="/predict"
         method="POST"
         enctype="multipart/form-data"
       >
-        <label class="block">
-          <span class="text-sm text-gray-700">Upload an image</span>
-          <input
-            name="image"
-            type="file"
-            accept="image/*"
-            class="mt-2 block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gray-800 file:text-white hover:file:bg-gray-700"
-            onchange="previewImage(event)"
-          />
-        </label>
+        <div class="viewfinder" id="viewfinder">
+          <span class="vf-corner vf-tl"></span>
+          <span class="vf-corner vf-tr"></span>
+          <span class="vf-corner vf-bl"></span>
+          <span class="vf-corner vf-br"></span>
 
-        <!-- Live client-side preview before upload -->
-        <div id="preview-container" class="hidden mt-4">
-          <p class="text-sm text-gray-600 mb-2">Preview:</p>
-          <img
-            id="preview-img"
-            src=""
-            class="max-h-64 rounded-xl border shadow-sm"
-            alt="Image preview"
-          />
+          <label class="drop-area" id="drop-area" tabindex="0">
+            <input
+              name="image"
+              id="file-input"
+              type="file"
+              accept="image/*"
+              onchange="handleFile(event.target.files[0])"
+            />
+            <div id="drop-content">
+              <div class="drop-icon">📷</div>
+              <div class="drop-label">
+                <b>Click to upload</b> or drag a photo here<br />JPG or PNG
+              </div>
+            </div>
+            <div class="preview-wrap hidden" id="preview-wrap">
+              <img id="preview-img" src="" alt="Selected image preview" />
+            </div>
+          </label>
+
+          <button type="submit" class="btn" id="submit-btn" disabled>
+            Analyze image
+          </button>
         </div>
-
-        <button
-          type="submit"
-          class="px-4 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700"
-        >
-          Predict
-        </button>
       </form>
 
       {% if result %}
-      <div class="mt-8 bg-white rounded-2xl shadow p-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-          <!-- Left side: Prediction Details -->
+      <div class="result">
+        <div class="result-grid">
           <div>
-            <h2 class="text-xl font-semibold mb-3">Prediction Result</h2>
-
-            <p class="text-lg">
-              <span class="font-medium text-gray-700">Label:</span>
-              <span class="font-semibold text-emerald-700"
-                >{{ result.label }}</span
-              >
-            </p>
-
-            <p class="mt-2 text-lg">
-              <span class="font-medium text-gray-700">Confidence:</span>
-              <span class="font-semibold text-blue-700"
-                >{{ result.confidence }}%</span
-              >
-            </p>
-
-            <!-- Optional: probability bar -->
-            <div class="mt-4">
-              <div class="w-full bg-gray-200 rounded-full h-3">
-                <div
-                  class="h-3 rounded-full bg-emerald-600"
-                  style="width: {{ result.confidence }}%"
-                ></div>
-              </div>
+            <div class="label-row">
+              <span class="tag">Prediction</span>
             </div>
-          </div>
-          {% if result and result.ambiguous %}
-          <div
-            class="mt-4 rounded-lg border border-amber-300 bg-amber-50 text-amber-800 px-4 py-2 text-sm"
-          >
-            <p class="font-medium">
-              ⚠️ Multiple objects or conflicting cues detected.
-            </p>
-            <p>
-              Prediction may be unreliable for images containing both cat, and
-              dog.
-            </p>
-            <p class="text-amber-700">
-              Working on an upgraded model with multi-object detection... Stay
-              tuned!
-            </p>
-          </div>
-          {% endif %} {% if result.is_ood %}
-          <div
-            class="mt-4 rounded-lg border border-amber-300 bg-amber-50 text-amber-800 px-4 py-2 text-sm"
-          >
-            This image doesn't look like our training classes (cat/dog). Result
-            shown as <b>“unknown animal”</b>.
-          </div>
-          {% endif %}
+            <div
+              class="label-value {% if result.is_ood %}unknown{% endif %}"
+            >
+              {{ result.label }}
+            </div>
 
-          <!-- Right side: Image -->
+            <div class="conf-bar-track">
+              <div
+                class="conf-bar-fill"
+                style="width: {{ result.confidence }}%"
+              ></div>
+            </div>
+            <div class="conf-number">
+              confidence: <b>{{ result.confidence }}%</b>
+            </div>
+
+            <div class="stat-row">
+              <div><b>{{ result.probability }}</b>raw prob</div>
+              <div><b>{{ result.similarity }}</b>similarity</div>
+              <div><b>{{ result.margin }}</b>margin</div>
+            </div>
+
+            {% if result.ambiguous %}
+            <div class="notice warn">
+              <b>⚠ Mixed signals detected.</b> This image may contain
+              multiple subjects or conflicting visual cues — treat the
+              result with some caution. Multi-object detection is on the
+              roadmap.
+            </div>
+            {% endif %}
+
+            {% if result.is_ood %}
+            <div class="notice warn">
+              <b>Not recognized as cat or dog.</b> Shown as
+              "unknown animal" since this image doesn't match either
+              trained class closely enough.
+            </div>
+            {% endif %}
+          </div>
+
           {% if image_url %}
-          <div class="flex justify-center">
-            <div>
-              <p class="text-sm text-gray-600 mb-2 text-center">
-                Uploaded Image
-              </p>
-              <img
-                src="{{ image_url }}"
-                class="max-h-72 rounded-xl border shadow-md object-contain"
-                alt="Uploaded image"
-              />
-            </div>
+          <div class="result-img-wrap">
+            <img src="{{ image_url }}" alt="Uploaded image" />
           </div>
           {% endif %}
         </div>
       </div>
       {% endif %}
-      <div class="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="bg-white rounded-2xl shadow p-6">
-          <h2 class="font-medium mb-2">Model Comparison</h2>
-          <p class="text-sm text-gray-600">
-            See reports: accuracy, ROC-AUC, confusion matrix.
-            <a
-              href="/accuracy"
-              class="inline-flex items-center text-sm text-blue-600 hover:underline"
-            >
-              View detailed reports →
-            </a>
+
+      <div class="footer-grid">
+        <div class="fcard">
+          <h2>Model comparison</h2>
+          <p>
+            Accuracy, F1, ROC-AUC, and confusion matrices across every
+            trained model.
+            <a href="/accuracy">View reports →</a>
           </p>
         </div>
-        <div class="bg-white rounded-2xl shadow p-6">
-          <h2 class="font-medium mb-2">How it works</h2>
-          <ol class="list-decimal ml-6 text-sm text-gray-700">
+        <div class="fcard">
+          <h2>How it works</h2>
+          <ol>
             <li>Upload → preprocess</li>
-            <li>Model inference → probability</li>
-            <li>Threshold 0.5 → label</li>
+            <li>Multi-crop inference → averaged probability</li>
+            <li>Embedding similarity → in/out-of-distribution check</li>
           </ol>
         </div>
       </div>
+        </div>
+      </div>
     </div>
+
+    <script>
+      const dropArea = document.getElementById("drop-area");
+      const fileInput = document.getElementById("file-input");
+      const viewfinder = document.getElementById("viewfinder");
+      const previewWrap = document.getElementById("preview-wrap");
+      const previewImg = document.getElementById("preview-img");
+      const dropContent = document.getElementById("drop-content");
+      const submitBtn = document.getElementById("submit-btn");
+      const form = document.getElementById("predict-form");
+
+      function handleFile(file) {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          previewImg.src = e.target.result;
+          previewWrap.classList.remove("hidden");
+          dropContent.style.display = "none";
+          viewfinder.classList.add("is-focused");
+          submitBtn.disabled = false;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      dropArea.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") fileInput.click();
+      });
+
+      ["dragenter", "dragover"].forEach((evt) =>
+        dropArea.addEventListener(evt, (e) => {
+          e.preventDefault();
+          dropArea.classList.add("drag-over");
+        })
+      );
+      ["dragleave", "drop"].forEach((evt) =>
+        dropArea.addEventListener(evt, (e) => {
+          e.preventDefault();
+          dropArea.classList.remove("drag-over");
+        })
+      );
+      dropArea.addEventListener("drop", (e) => {
+        const file = e.dataTransfer.files[0];
+        if (file) {
+          fileInput.files = e.dataTransfer.files;
+          handleFile(file);
+        }
+      });
+
+      form.addEventListener("submit", () => {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Analyzing…";
+      });
+    </script>
   </body>
-  <script>
-    function previewImage(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        const preview = document.getElementById("preview-img");
-        const container = document.getElementById("preview-container");
-
-        preview.src = e.target.result;
-        container.classList.remove("hidden");
-      };
-      reader.readAsDataURL(file);
-    }
-  </script>
 </html>
