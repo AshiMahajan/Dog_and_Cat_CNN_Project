@@ -1,68 +1,134 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <title>Model Reports</title>
+    <title>AniLens — Model Reports</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0e1116;
+        --card: #161b22;
+        --card-2: #1c2330;
+        --line: #2a3140;
+        --text: #c9d1d9;
+        --text-dim: #7d8794;
+        --lime: #e6ff4d;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; background: var(--bg); color: var(--text); font-family: "Inter", sans-serif; }
+      .display { font-family: "Space Grotesk", sans-serif; }
+      .mono { font-family: "JetBrains Mono", monospace; }
+      .wrap { max-width: 980px; margin: 0 auto; padding: 48px 20px 80px; }
+      .top-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 10px; }
+      h1 { font-family: "Space Grotesk", sans-serif; font-size: 1.6rem; margin: 0; }
+      .back-link { font-size: 0.85rem; color: var(--lime); text-decoration: none; }
+      .back-link:hover { text-decoration: underline; }
+
+      .table-card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        overflow: hidden;
+      }
+      table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+      thead { background: var(--card-2); }
+      th { text-align: left; padding: 12px 16px; font-family: "JetBrains Mono", monospace; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); }
+      td { padding: 14px 16px; border-top: 1px solid var(--line); vertical-align: top; }
+      tr:hover td { background: rgba(230, 255, 77, 0.02); }
+      .tag-name { font-family: "Space Grotesk", sans-serif; font-weight: 600; text-transform: capitalize; }
+      .metric-val { font-family: "JetBrains Mono", monospace; color: var(--lime); }
+      .metric-na { font-family: "JetBrains Mono", monospace; color: var(--text-dim); }
+
+      summary { color: var(--lime); cursor: pointer; font-size: 0.85rem; }
+      summary:hover { text-decoration: underline; }
+      .detail-imgs { margin-top: 14px; display: grid; grid-template-columns: 1fr; gap: 14px; }
+      @media (min-width: 600px) { .detail-imgs { grid-template-columns: 1fr 1fr; } }
+      .detail-imgs img { width: 100%; border-radius: 10px; border: 1px solid var(--line); }
+      .detail-imgs .cap { font-size: 0.78rem; color: var(--text-dim); margin-bottom: 6px; }
+      pre.metrics-json {
+        margin-top: 14px;
+        background: var(--card-2);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 14px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.78rem;
+        overflow-x: auto;
+        color: var(--text);
+      }
+
+      .empty-card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 28px;
+        font-size: 0.92rem;
+        color: var(--text-dim);
+      }
+      .empty-card code {
+        font-family: "JetBrains Mono", monospace;
+        background: var(--card-2);
+        padding: 2px 6px;
+        border-radius: 5px;
+        color: var(--lime);
+      }
+    </style>
   </head>
-  <body class="min-h-screen bg-gray-50">
-    <div class="max-w-5xl mx-auto py-10 px-4">
-      <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-semibold">Model Comparison Reports</h1>
-        <a href="/" class="text-sm text-blue-600 hover:underline"
-          >← Back to app</a
-        >
+  <body>
+    <div class="wrap">
+      <div class="top-row">
+        <h1>Model comparison reports</h1>
+        <a href="/" class="back-link">← Back to app</a>
       </div>
 
       {% if reports and reports|length > 0 %}
-      <div class="overflow-x-auto bg-white rounded-2xl shadow">
-        <table class="min-w-full text-sm">
-          <thead class="bg-gray-100">
+      <div class="table-card">
+        <table>
+          <thead>
             <tr>
-              <th class="text-left px-4 py-3">Model</th>
-              <th class="text-left px-4 py-3">Accuracy</th>
-              <th class="text-left px-4 py-3">ROC-AUC</th>
-              <th class="text-left px-4 py-3">Details</th>
+              <th>Model</th>
+              <th>Accuracy</th>
+              <th>ROC-AUC</th>
+              <th>Details</th>
             </tr>
           </thead>
           <tbody>
             {% for r in reports %}
-            <tr class="border-t">
-              <td class="px-4 py-3 font-medium">{{ r.tag }}</td>
-              <td class="px-4 py-3">
-                {% if r.metrics.accuracy is defined %}{{
-                '%.4f'|format(r.metrics.accuracy) }}{% else %}—{% endif %}
+            <tr>
+              <td class="tag-name">{{ r.tag }}</td>
+              <td>
+                {% if r.metrics.accuracy is defined %}
+                <span class="metric-val">{{ '%.4f'|format(r.metrics.accuracy) }}</span>
+                {% else %}<span class="metric-na">—</span>{% endif %}
               </td>
-              <td class="px-4 py-3">
-                {% if r.metrics.roc_auc is not none %}{{
-                '%.4f'|format(r.metrics.roc_auc) }}{% else %}N/A{% endif %}
+              <td>
+                {% if r.metrics.roc_auc is not none %}
+                <span class="metric-val">{{ '%.4f'|format(r.metrics.roc_auc) }}</span>
+                {% else %}<span class="metric-na">N/A</span>{% endif %}
               </td>
-              <td class="px-4 py-3">
-                <details class="cursor-pointer">
-                  <summary class="text-blue-600 hover:underline">View</summary>
-                  <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <td>
+                <details>
+                  <summary>View</summary>
+                  <div class="detail-imgs">
                     {% if r.cm_path %}
                     <div>
-                      <div class="text-gray-700 mb-2">Confusion Matrix</div>
-                      <img
-                        src="{{ url_for('static_report_file', path=r.cm_path) }}"
-                        class="rounded-xl border"
-                      />
+                      <div class="cap">Confusion matrix</div>
+                      <img src="{{ url_for('static_report_file', path=r.cm_path) }}" />
                     </div>
-                    {% endif %} {% if r.roc_path %}
+                    {% endif %}
+                    {% if r.roc_path %}
                     <div>
-                      <div class="text-gray-700 mb-2">ROC Curve</div>
-                      <img
-                        src="{{ url_for('static_report_file', path=r.roc_path) }}"
-                        class="rounded-xl border"
-                      />
+                      <div class="cap">ROC curve</div>
+                      <img src="{{ url_for('static_report_file', path=r.roc_path) }}" />
                     </div>
                     {% endif %}
                   </div>
-                  <pre class="mt-4 p-3 bg-gray-50 rounded-lg overflow-x-auto">
-{{ r.metrics | tojson(indent=2) }}</pre
-                  >
+                  <pre class="metrics-json">{{ r.metrics | tojson(indent=2) }}</pre>
                 </details>
               </td>
             </tr>
@@ -71,11 +137,8 @@
         </table>
       </div>
       {% else %}
-      <div class="bg-white rounded-2xl shadow p-6">
-        <p class="text-gray-700">
-          No reports found in <code>reports/</code>. Run
-          <code>python evaluate.py</code> first.
-        </p>
+      <div class="empty-card">
+        No reports found in <code>reports/</code>. Run <code>python evaluate.py</code> first.
       </div>
       {% endif %}
     </div>
